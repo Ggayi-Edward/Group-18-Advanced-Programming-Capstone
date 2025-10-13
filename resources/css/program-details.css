@@ -1,0 +1,30 @@
+/* Card hover effect */
+.card {
+    transition: transform 0.2s;
+}
+.card:hover {
+    transform: translateY(-3px);
+}
+
+/* Scrollable badges for Focus Areas and Phases */
+.badges-container {
+    max-height: 120px;
+    overflow-y: auto;
+    padding-right: 5px;
+}
+
+/* Smaller table spacing */
+.table-sm th, .table-sm td {
+    padding: 0.45rem 0.65rem;
+}
+
+/* Ensure projects table is responsive */
+.projects-table-container {
+    overflow-x: auto;
+}
+
+/* Label text above value */
+.text-muted.small {
+    font-size: 0.8rem;
+    font-weight: 500;
+}
