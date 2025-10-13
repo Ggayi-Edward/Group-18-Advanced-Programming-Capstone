@@ -1,0 +1,12 @@
+{
+    "1": {
+        "FacilityId": 1,
+        "Name": "Soldering Station",
+        "InventoryCode": "EQP-101",
+        "UsageDomain": "Electronics",
+        "SupportPhase": [
+            "Prototyping"
+        ],
+        "EquipmentId": 1
+    }
+}
