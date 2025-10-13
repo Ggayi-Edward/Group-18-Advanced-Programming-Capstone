@@ -1,0 +1,16 @@
+{
+    "1": {
+        "Name": "Innovation Lab",
+        "Location": "Nairobi",
+        "FacilityType": "Research Center",
+        "Capabilities": [],
+        "FacilityId": 1
+    },
+    "2": {
+        "Name": "Innovation Lab",
+        "Location": "Kampala",
+        "FacilityType": "Tech Hub",
+        "Capabilities": [],
+        "FacilityId": 2
+    }
+}
