@@ -26,7 +26,7 @@
         padding: 0.2rem 0.45rem;
     }
 
-    /* Search with icon inside (icon at the end) */
+    /* Search with icon inside */
     .search-wrapper {
         position: relative;
     }
@@ -41,27 +41,24 @@
         cursor: pointer;
         padding: 0;
     }
+
     .search-wrapper .search-btn i {
         font-size: 0.8rem;
         color: #888;
     }
 
-    .search-wrapper .fa-search {
-        position: absolute;
-        right: 10px; /* moved to right */
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 0.8rem;
-        color: #888;
-    }
     .search-wrapper input {
-        padding-right: 28px; /* space for the icon */
-        padding-left: 0.45rem; /* normal padding */
+        padding-right: 28px;
+        padding-left: 0.45rem;
     }
 
-    /* Extra spacing between Reset & Apply buttons */
     .filter-form .btn + .btn {
         margin-left: 8px;
+    }
+
+    /* Flash messages transition */
+    .alert {
+        transition: opacity 0.5s ease-out;
     }
 </style>
 @endsection
@@ -69,22 +66,29 @@
 @section('content')
 <div class="card shadow-sm border-0">
 
+    <!-- Messages -->
+    <div class="card-body pt-2 pb-0">
+        @if(session('success'))
+            <div class="alert alert-success alert-sm">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger alert-sm">{{ session('error') }}</div>
+        @endif
+    </div>
+
     <!-- Filter Bar -->
     <div class="card-body pb-2">
         <form method="GET" action="{{ route('facilities.index') }}" class="filter-form">
             <div class="row g-2 align-items-center">
 
                 <!-- Search -->
-                <div class="search-wrapper">
+                <div class="col-md-3 search-wrapper">
                     <input type="text" name="search" value="{{ request('search') }}" 
                         class="form-control" placeholder="Search by name">
-
-                    <!-- Turn icon into a button -->
                     <button type="submit" class="search-btn">
                         <i class="fas fa-search"></i>
                     </button>
                 </div>
-
 
                 <!-- Type -->
                 <div class="col-md-2">
@@ -183,7 +187,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="text-center text-muted">No facilities found.</td>
+                            <td colspan="5" class="text-center text-muted py-3">No facilities found.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -191,4 +195,18 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    // Flash messages disappear after 3 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(el => {
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 500);
+            });
+        }, 3000);
+    });
+</script>
 @endsection

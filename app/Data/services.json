@@ -1,0 +1,16 @@
+{
+    "1": {
+        "FacilityId": 1,
+        "Name": "Calibration Service",
+        "Category": "Testing",
+        "SkillType": "Mechanical",
+        "ServiceId": 1
+    },
+    "2": {
+        "FacilityId": 2,
+        "Name": "Calibration Service",
+        "Category": "Testing",
+        "SkillType": "Mechanical",
+        "ServiceId": 2
+    }
+}

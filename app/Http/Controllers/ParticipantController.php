@@ -42,7 +42,17 @@ public function store(Request $request)
         'projectId'         => 'required|integer',
     ]);
 
-    // ✅ Create a Participant object from validated data
+    // ✅ Check if email already exists
+    $existing = \App\Data\FakeParticipantRepository::all();
+    foreach ($existing as $p) {
+        if (strcasecmp($p->Email, $validated['email']) === 0) {
+            return back()
+                ->withInput()
+                ->withErrors(['email' => 'This email is already registered. Please use a different one.']);
+        }
+    }
+
+    // ✅ Continue saving if email is new
     $participant = \App\Models\Participant::fromArray([
         'FullName'          => $validated['fullName'],
         'Email'             => $validated['email'],
@@ -50,22 +60,19 @@ public function store(Request $request)
         'Specialization'    => $validated['specialization'],
         'CrossSkillTrained' => (int) $validated['crossSkillTrained'],
         'Institution'       => $validated['institution'],
-        'ProjectId'         => $validated['projectId'], // note PascalCase
+        'ProjectId'         => $validated['projectId'],
     ]);
 
-    // Save participant into fake repository
     \App\Data\FakeParticipantRepository::create($participant->toArray());
 
-    // Also update the project's Participants list in FakeProjectRepository
     $project = \App\Data\FakeProjectRepository::find($participant->ProjectId);
     if ($project) {
         $project->Participants[] = $participant;
         \App\Data\FakeProjectRepository::update($project->ProjectId, $project->toArray());
     }
 
-    // Redirect back to the project's show page
     return redirect()
-        ->route('projects.show', $participant->ProjectId)
+        ->route('projects.index', $participant->ProjectId)
         ->with('success', 'Participant created successfully.');
 }
 

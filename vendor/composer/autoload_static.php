@@ -534,7 +534,6 @@ class ComposerStaticInitc514d8f7b9fc5970bdd94287905ef584
     );
 
     public static $classMap = array (
-        'App\\Data\\FakeEquipmentRepository' => __DIR__ . '/../..' . '/app/Data/FakeEquipmentRepository.php',
         'App\\Data\\FakeFacilityRepository' => __DIR__ . '/../..' . '/app/Data/FakeFacilityRepository.php',
         'App\\Data\\FakeOutcomeRepository' => __DIR__ . '/../..' . '/app/Data/FakeOutcomeRepository.php',
         'App\\Data\\FakeParticipantRepository' => __DIR__ . '/../..' . '/app/Data/FakeParticipantRepository.php',

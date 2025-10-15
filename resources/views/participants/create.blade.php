@@ -23,10 +23,15 @@
 
                 <!-- Email -->
                 <div class="form-group mb-3">
-                    <label for="email">Email <span class="text-danger">*</span></label>
-                    <input type="email" name="email" id="email"
-                           class="form-control" value="{{ old('email', $participant->Email ?? '') }}" required>
-                </div>
+    <label for="email">Email <span class="text-danger">*</span></label>
+    <input type="email" name="email" id="email"
+           class="form-control @error('email') is-invalid @enderror"
+           value="{{ old('email', $participant->Email ?? '') }}" required>
+    @error('email')
+        <small class="text-danger">{{ $message }}</small>
+    @enderror
+</div>
+
 
                 <!-- Affiliation -->
                 <div class="form-group mb-3">

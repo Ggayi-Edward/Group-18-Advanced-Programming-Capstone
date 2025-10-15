@@ -93,41 +93,52 @@
                 </thead>
                 <tbody>
                     @forelse($project->Participants ?? [] as $p)
-                        @php
-                            $pid = $p->ParticipantId;
-                            $pname = $p->FullName;
-                        @endphp
-                        <tr>
-                            <td>{{ $pname }}</td>
-                            <td class="text-center">
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="{{ route('participants.show', ['participant' => $pid, 'redirectTo' => $redirectUrl]) }}"
-                                       class="btn btn-outline-secondary icon-square" title="View">
-                                       <i class="fas fa-eye"></i>
-                                    </a>
-                                    <a href="{{ route('participants.edit', ['participant' => $pid, 'redirectTo' => $redirectUrl]) }}"
-                                       class="btn btn-outline-warning icon-square" title="Edit">
-                                       <i class="fas fa-edit"></i>
-                                    </a>
-                                    <form action="{{ route('participants.destroy', $pid) }}" method="POST" class="d-inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <input type="hidden" name="redirectTo" value="{{ $redirectUrl }}">
-                                        <button type="submit"
-                                                class="btn btn-outline-danger icon-square"
-                                                onclick="return confirm('Remove this participant?')"
-                                                title="Delete">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </form>
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="2" class="text-center text-muted">No participants found.</td>
-                        </tr>
-                    @endforelse
+    @php
+        // If participant is an array, cast to object
+        if (is_array($p)) {
+            $p = (object) $p;
+        }
+
+        // If participant is string, use as name, ID is null
+        $pid = $p->ParticipantId ?? null;
+        $pname = $p->FullName ?? (is_string($p) ? $p : 'N/A');
+    @endphp
+    <tr>
+        <td>{{ $pname }}</td>
+        <td class="text-center">
+            <div class="btn-group btn-group-sm" role="group">
+                @if($pid)
+                <a href="{{ route('participants.show', ['participant' => $pid, 'redirectTo' => $redirectUrl]) }}"
+                   class="btn btn-outline-secondary icon-square" title="View">
+                   <i class="fas fa-eye"></i>
+                </a>
+                <a href="{{ route('participants.edit', ['participant' => $pid, 'redirectTo' => $redirectUrl]) }}"
+                   class="btn btn-outline-warning icon-square" title="Edit">
+                   <i class="fas fa-edit"></i>
+                </a>
+                <form action="{{ route('participants.destroy', $pid) }}" method="POST" class="d-inline">
+                    @csrf
+                    @method('DELETE')
+                    <input type="hidden" name="redirectTo" value="{{ $redirectUrl }}">
+                    <button type="submit"
+                            class="btn btn-outline-danger icon-square"
+                            onclick="return confirm('Remove this participant?')"
+                            title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
+                @else
+                <span class="text-muted">No actions available</span>
+                @endif
+            </div>
+        </td>
+    </tr>
+@empty
+    <tr>
+        <td colspan="2" class="text-center text-muted">No participants found.</td>
+    </tr>
+@endforelse
+
                 </tbody>
             </table>
         </div>

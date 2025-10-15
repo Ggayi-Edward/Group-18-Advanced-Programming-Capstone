@@ -6,7 +6,6 @@ $vendorDir = dirname(__DIR__);
 $baseDir = dirname($vendorDir);
 
 return array(
-    'App\\Data\\FakeEquipmentRepository' => $baseDir . '/app/Data/FakeEquipmentRepository.php',
     'App\\Data\\FakeFacilityRepository' => $baseDir . '/app/Data/FakeFacilityRepository.php',
     'App\\Data\\FakeOutcomeRepository' => $baseDir . '/app/Data/FakeOutcomeRepository.php',
     'App\\Data\\FakeParticipantRepository' => $baseDir . '/app/Data/FakeParticipantRepository.php',

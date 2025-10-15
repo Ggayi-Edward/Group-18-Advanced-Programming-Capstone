@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Data\FakeProgramRepository;
+use App\Data\FakeProjectRepository;
 
 class ProgramController extends Controller
 {
@@ -13,10 +14,9 @@ class ProgramController extends Controller
         return view('programs.index', compact('programs'));
     }
 
-    // In your ProgramController.php's create method
     public function create()
     {
-        // Fetch your actual list of recognized alignments from a service or config
+        // Recognized national alignments
         $recognizedAlignments = ['NDPIII', 'Digital Roadmap', '4IR Strategy', 'SDGs'];
 
         return view('programs.create', compact('recognizedAlignments'));
@@ -41,7 +41,6 @@ class ProgramController extends Controller
         $program = FakeProgramRepository::find($id);
         abort_unless($program, 404);
 
-        // get projects for this program (returns array of Project objects or arrays depending on Project repo)
         $projects = FakeProgramRepository::projects($id);
 
         return view('programs.show', compact('program', 'projects'));
@@ -70,7 +69,17 @@ class ProgramController extends Controller
 
     public function destroy($id)
     {
+        // Check if the program has any projects
+        $projects = FakeProjectRepository::forProgram($id);
+
+        if (count($projects) > 0) {
+            return redirect()->route('programs.index')
+                             ->with('error', 'Cannot delete Program because it has Projects under it.');
+        }
+
+        // Safe to delete
         FakeProgramRepository::delete($id);
+
         return redirect()->route('programs.index')->with('status', 'Program deleted.');
     }
 }

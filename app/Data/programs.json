@@ -1,8 +1,12 @@
 {
     "1": {
-        "Name": "Digital Uganda Vision",
-        "Description": "A national strategy initiative",
+        "Name": "vv",
+        "Description": "bnbn",
         "NationalAlignment": "NDPIII",
+        "FocusAreas": [
+            "cv"
+        ],
+        "Phases": null,
         "ProgramId": 1
     }
 }

@@ -16,6 +16,11 @@
         vertical-align: middle !important; /* center content */
         font-size: 0.85rem; /* slightly smaller text */
     }
+
+    /* Flash messages */
+    .alert {
+        transition: opacity 0.5s ease-out;
+    }
 </style>
 @endsection
 
@@ -36,6 +41,18 @@
     </div>
 
     <div class="card-body p-0">
+
+        {{-- Flash messages --}}
+        <div class="px-3 py-2">
+            @if(session('status'))
+                <div class="alert alert-success mb-2">{{ session('status') }}</div>
+            @endif
+
+            @if(session('error'))
+                <div class="alert alert-danger mb-2">{{ session('error') }}</div>
+            @endif
+        </div>
+
         <div class="table-responsive">
             <table class="table table-hover table-striped table-smaller mb-0">
                 <thead style="background-color: #f8f9fa;">
@@ -87,4 +104,18 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    // Flash messages disappear after 3 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(el => {
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 500); // remove from DOM after fade
+            });
+        }, 3000);
+    });
+</script>
 @endsection

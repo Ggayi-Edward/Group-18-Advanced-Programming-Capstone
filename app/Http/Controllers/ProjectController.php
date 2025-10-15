@@ -16,6 +16,7 @@ class ProjectController extends Controller
     {
         $projects = FakeProjectRepository::all();
 
+        // Load program and facility for each project
         foreach ($projects as $project) {
             $project->Program = $project->ProgramId
                 ? FakeProgramRepository::find($project->ProgramId)
@@ -35,8 +36,8 @@ class ProjectController extends Controller
         $facilities = FakeFacilityRepository::all();
         $participants = FakeParticipantRepository::all();
 
-        $preselectedProgramId = $request->query('programId', null);
-        $preselectedFacilityId = $request->query('facilityId', null);
+        $preselectedProgramId = $request->query('programId');
+        $preselectedFacilityId = $request->query('facilityId');
 
         return view('projects.create', compact(
             'programs',
@@ -57,10 +58,9 @@ class ProjectController extends Controller
             'status' => 'nullable|string',
             'programId' => 'required|integer',
             'facilityId' => 'required|integer',
-            'participants' => 'required|string', // allow string input
+            'participants' => 'required|string',
         ]);
 
-        // Convert comma-separated string to array
         $participantsArray = array_map('trim', explode(',', $data['participants']));
 
         try {
@@ -79,9 +79,8 @@ class ProjectController extends Controller
             return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
 
-        return redirect()
-            ->route('projects.index')
-            ->with('success', 'Project created successfully with team members.');
+        return redirect()->route('projects.index')
+                         ->with('success', 'Project created successfully with team members.');
     }
 
     public function show($id)
@@ -121,7 +120,7 @@ class ProjectController extends Controller
             'status' => 'nullable|string',
             'programId' => 'required|integer',
             'facilityId' => 'required|integer',
-            'participants' => 'required|string', // accept comma-separated
+            'participants' => 'required|string',
         ]);
 
         $participantsArray = array_map('trim', explode(',', $data['participants']));
@@ -137,12 +136,29 @@ class ProjectController extends Controller
             'Participants' => $participantsArray,
         ]);
 
-        return redirect()->route('projects.index')->with('success', 'Project updated successfully.');
+        return redirect()->route('projects.index')
+                         ->with('success', 'Project updated successfully.');
     }
 
     public function destroy($id)
     {
+        $project = FakeProjectRepository::find($id);
+        if (!$project) {
+            return redirect()->route('projects.index')
+                             ->with('error', 'Project not found.');
+        }
+
+        $outcomes = FakeOutcomeRepository::all();
+        $projectOutcomes = array_filter($outcomes, fn($o) => $o->ProjectId == $id);
+
+        if (!empty($projectOutcomes)) {
+            return redirect()->route('projects.index')
+                             ->with('error', 'Cannot delete this project because it has Outcomes under it.');
+        }
+
         FakeProjectRepository::delete($id);
-        return redirect()->route('projects.index')->with('success', 'Project deleted successfully.');
+
+        return redirect()->route('projects.index')
+                         ->with('success', 'Project deleted successfully.');
     }
 }

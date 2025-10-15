@@ -14,31 +14,25 @@ class FacilityController extends Controller
     {
         $facilities = FakeFacilityRepository::all();
 
-        // Apply search filters manually since using FakeRepository
+        // Apply search filters manually
         if ($request->filled('search')) {
-            $facilities = array_filter($facilities, function ($f) use ($request) {
-                return stripos($f->Name, $request->search) !== false;
-            });
+            $facilities = array_filter($facilities, fn($f) => stripos($f->Name, $request->search) !== false);
         }
 
         if ($request->filled('type')) {
-            $facilities = array_filter($facilities, function ($f) use ($request) {
-                return stripos($f->FacilityType, $request->type) !== false;
-            });
+            $facilities = array_filter($facilities, fn($f) => stripos($f->FacilityType, $request->type) !== false);
         }
 
         if ($request->filled('partner')) {
-            $facilities = array_filter($facilities, function ($f) use ($request) {
-                return stripos($f->PartnerOrganization, $request->partner) !== false;
-            });
+            $facilities = array_filter($facilities, fn($f) => stripos($f->PartnerOrganization, $request->partner) !== false);
         }
 
         if ($request->filled('capabilities')) {
             $capFilter = strtolower($request->capabilities);
-            $facilities = array_filter($facilities, function ($f) use ($capFilter) {
-                return !empty($f->Capabilities) &&
-                       collect($f->Capabilities)->contains(fn($c) => stripos($c, $capFilter) !== false);
-            });
+            $facilities = array_filter($facilities, fn($f) =>
+                !empty($f->Capabilities) &&
+                collect($f->Capabilities)->contains(fn($c) => stripos($c, $capFilter) !== false)
+            );
         }
 
         return view('facilities.index', ['facilities' => $facilities]);
@@ -67,12 +61,8 @@ class FacilityController extends Controller
     public function show($id)
     {
         $facility = FakeFacilityRepository::find($id);
+        abort_unless($facility, 404, "Facility not found");
 
-        if (!$facility) {
-            abort(404, "Facility not found");
-        }
-
-        // Load related entities
         $services  = FakeServiceRepository::forFacility($id);
         $equipment = FakeEquipmentRepository::forFacility($id);
         $projects  = FakeProjectRepository::forFacility($id);
@@ -83,10 +73,7 @@ class FacilityController extends Controller
     public function edit($id)
     {
         $facility = FakeFacilityRepository::find($id);
-
-        if (!$facility) {
-            abort(404, "Facility not found");
-        }
+        abort_unless($facility, 404, "Facility not found");
 
         return view('facilities.edit', compact('facility'));
     }
@@ -108,6 +95,14 @@ class FacilityController extends Controller
 
     public function destroy($id)
     {
+        $projects = FakeProjectRepository::forFacility($id);
+
+        // Only projects block deletion
+        if (!empty($projects)) {
+            return redirect()->route('facilities.index')
+                             ->with('error', 'Cannot delete facility because it has projects linked.');
+        }
+
         FakeFacilityRepository::delete($id);
 
         return redirect()->route('facilities.index')

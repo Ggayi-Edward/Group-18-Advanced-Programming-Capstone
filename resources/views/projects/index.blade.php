@@ -17,11 +17,25 @@
         vertical-align: middle !important;
         font-size: 0.85rem;
     }
+
+    /* Flash messages */
+    .alert {
+        transition: opacity 0.5s ease-out;
+    }
 </style>
 @endsection
 
 @section('content')
 <div class="card shadow-sm border-0">
+
+    <!-- Alerts -->
+    @if(session('success'))
+        <div class="alert alert-success m-3">{{ session('success') }}</div>
+    @endif
+    @if(session('error'))
+        <div class="alert alert-danger m-3">{{ session('error') }}</div>
+    @endif
+
     <!-- Header -->
     <div class="card-header d-flex justify-content-between align-items-center text-white"
          style="background: linear-gradient(135deg, #2c3e50 0%, #2980b9 100%);">
@@ -96,4 +110,18 @@
         </div>
     </div>
 </div>
+@endsection
+
+@section('scripts')
+<script>
+    // Flash messages disappear after 3 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(el => {
+                el.style.opacity = '0';
+                setTimeout(() => el.remove(), 500); // remove from DOM after fade
+            });
+        }, 3000);
+    });
+</script>
 @endsection

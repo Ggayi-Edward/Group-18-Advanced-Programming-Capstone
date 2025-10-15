@@ -1,16 +1,13 @@
 {
     "1": {
-        "Name": "Innovation Lab",
-        "Location": "Nairobi",
-        "FacilityType": "Research Center",
-        "Capabilities": [],
+        "Name": "vbvb",
+        "Location": "nn",
+        "Description": null,
+        "PartnerOrganization": null,
+        "FacilityType": "hghg",
+        "Capabilities": [
+            ""
+        ],
         "FacilityId": 1
-    },
-    "2": {
-        "Name": "Innovation Lab",
-        "Location": "Kampala",
-        "FacilityType": "Tech Hub",
-        "Capabilities": [],
-        "FacilityId": 2
     }
 }
