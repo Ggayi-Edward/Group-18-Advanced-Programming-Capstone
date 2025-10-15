@@ -52,35 +52,49 @@ class ProjectController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
             'startDate' => 'nullable|date',
             'endDate' => 'nullable|date',
             'status' => 'nullable|string',
             'programId' => 'required|integer',
             'facilityId' => 'required|integer',
             'participants' => 'required|string',
+            'outcomes' => 'nullable|string',
         ]);
 
         $participantsArray = array_map('trim', explode(',', $data['participants']));
+        $outcomesArray = !empty($data['outcomes']) ? array_map('trim', explode(',', $data['outcomes'])) : [];
+
+        // Rule 1: Completed project must have at least one outcome
+        if (strtolower($data['status'] ?? '') === 'completed' && empty($outcomesArray)) {
+            return back()->withErrors(['outcomes' => 'Completed projects must have at least one outcome.'])->withInput();
+        }
+
+        // Rule 2: Project name must be unique within the same program
+        $existingProjects = FakeProjectRepository::forProgram($data['programId']);
+        foreach ($existingProjects as $proj) {
+            if (strcasecmp($proj->Name, $data['name']) === 0) {
+                return back()->withErrors(['name' => 'Project name already exists in this program.'])->withInput();
+            }
+        }
 
         try {
             FakeProjectRepository::create([
                 'Name' => $data['name'],
-                'Description' => $data['description'] ?? '',
+                'Description' => $data['description'],
                 'StartDate' => $data['startDate'] ?? null,
                 'EndDate' => $data['endDate'] ?? null,
                 'Status' => $data['status'] ?? 'Planned',
                 'ProgramId' => $data['programId'],
                 'FacilityId' => $data['facilityId'],
                 'Participants' => $participantsArray,
-                'Outcomes' => [],
+                'Outcomes' => $outcomesArray,
             ]);
         } catch (Exception $e) {
             return back()->withErrors(['error' => $e->getMessage()])->withInput();
         }
 
-        return redirect()->route('projects.index')
-                         ->with('success', 'Project created successfully with team members.');
+        return redirect()->route('projects.index')->with('success', 'Project created successfully.');
     }
 
     public function show($id)
@@ -114,30 +128,45 @@ class ProjectController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'required|string',
             'startDate' => 'nullable|date',
             'endDate' => 'nullable|date',
             'status' => 'nullable|string',
             'programId' => 'required|integer',
             'facilityId' => 'required|integer',
             'participants' => 'required|string',
+            'outcomes' => 'nullable|string',
         ]);
 
         $participantsArray = array_map('trim', explode(',', $data['participants']));
+        $outcomesArray = !empty($data['outcomes']) ? array_map('trim', explode(',', $data['outcomes'])) : [];
+
+        // Rule 1: Completed project must have at least one outcome
+        if (strtolower($data['status'] ?? '') === 'completed' && empty($outcomesArray)) {
+            return back()->withErrors(['outcomes' => 'Completed projects must have at least one outcome.'])->withInput();
+        }
+
+        // Rule 2: Project name must be unique within the same program
+        $existingProjects = FakeProjectRepository::forProgram($data['programId']);
+        foreach ($existingProjects as $proj) {
+            if ($proj->ProjectId != $id && strcasecmp($proj->Name, $data['name']) === 0) {
+                return back()->withErrors(['name' => 'Project name already exists in this program.'])->withInput();
+            }
+        }
 
         FakeProjectRepository::update($id, [
             'Name' => $data['name'],
-            'Description' => $data['description'] ?? '',
+            'Description' => $data['description'],
             'StartDate' => $data['startDate'] ?? null,
             'EndDate' => $data['endDate'] ?? null,
             'Status' => $data['status'] ?? 'Planned',
             'ProgramId' => $data['programId'],
             'FacilityId' => $data['facilityId'],
             'Participants' => $participantsArray,
+            'Outcomes' => $outcomesArray,
         ]);
 
-        return redirect()->route('projects.index')
-                         ->with('success', 'Project updated successfully.');
+        return redirect()->route('projects.index')->with('success', 'Project updated successfully.');
     }
 
     public function destroy($id)

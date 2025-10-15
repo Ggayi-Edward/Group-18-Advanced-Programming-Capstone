@@ -45,6 +45,22 @@ class ServiceController extends Controller
             'targetGroups' => 'nullable|string',
         ]);
 
+        // ✅ Enforce uniqueness of service name within a facility
+        $existingServices = FakeServiceRepository::all();
+
+        foreach ($existingServices as $s) {
+            if (
+                strcasecmp($s->Name, $validated['name']) === 0 &&
+                (int) $s->FacilityId === (int) $validated['facilityId']
+            ) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'name' => 'A service with this name already exists in the selected facility.',
+                    ]);
+            }
+        }
+
         FakeServiceRepository::create([
             'Name'         => $validated['name'],
             'Category'     => $validated['category'],
@@ -53,8 +69,8 @@ class ServiceController extends Controller
             'Description'  => $validated['description'] ?? '',
             'DeliveryMode' => $validated['deliveryMode'] ?? '',
             'TargetGroups' => !empty($validated['targetGroups'])
-                                ? array_map('trim', explode(',', $validated['targetGroups']))
-                                : [],
+                ? array_map('trim', explode(',', $validated['targetGroups']))
+                : [],
         ]);
 
         return redirect()->route('services.index')
@@ -105,6 +121,23 @@ class ServiceController extends Controller
             'targetGroups' => 'nullable|string',
         ]);
 
+        // ✅ Uniqueness check for update (ignore current record)
+        $existingServices = FakeServiceRepository::all();
+
+        foreach ($existingServices as $s) {
+            if (
+                strcasecmp($s->Name, $validated['name']) === 0 &&
+                (int) $s->FacilityId === (int) $validated['facilityId'] &&
+                (int) $s->ServiceId !== (int) $id
+            ) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'name' => 'A service with this name already exists in the selected facility.',
+                    ]);
+            }
+        }
+
         FakeServiceRepository::update($id, [
             'Name'         => $validated['name'],
             'Category'     => $validated['category'],
@@ -113,8 +146,8 @@ class ServiceController extends Controller
             'Description'  => $validated['description'] ?? '',
             'DeliveryMode' => $validated['deliveryMode'] ?? '',
             'TargetGroups' => !empty($validated['targetGroups'])
-                                ? array_map('trim', explode(',', $validated['targetGroups']))
-                                : [],
+                ? array_map('trim', explode(',', $validated['targetGroups']))
+                : [],
         ]);
 
         return redirect()->route('services.index')

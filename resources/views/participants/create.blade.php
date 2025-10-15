@@ -33,17 +33,21 @@
 </div>
 
 
-                <!-- Affiliation -->
+               <!-- Affiliation -->
                 <div class="form-group mb-3">
-                    <label for="affiliation">Affiliation</label>
-                    <select name="affiliation" id="affiliation" class="form-control">
+                    <label for="affiliation">Affiliation <span class="text-danger">*</span></label>
+                    <select name="affiliation" id="affiliation" class="form-control" required>
                         @foreach(['CS','SE','Engineering','Other'] as $option)
                             <option value="{{ $option }}" {{ old('affiliation', $participant->Affiliation ?? '') == $option ? 'selected' : '' }}>
                                 {{ $option }}
                             </option>
                         @endforeach
                     </select>
+                    @error('affiliation')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
+
 
                 <!-- Specialization -->
                 <div class="form-group mb-3">

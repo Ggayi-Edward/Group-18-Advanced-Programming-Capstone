@@ -1,1 +1,22 @@
-[]
+{
+    "2": {
+        "ParticipantId": 2,
+        "FullName": "mitchell",
+        "Email": "nina09@gmail.com",
+        "Affiliation": "CS",
+        "Specialization": "Software",
+        "CrossSkillTrained": 1,
+        "Institution": "SCIT",
+        "ProjectId": "1"
+    },
+    "3": {
+        "ParticipantId": 3,
+        "FullName": "Nina",
+        "Email": "nmn@gmail.com",
+        "Affiliation": "CS",
+        "Specialization": "Software",
+        "CrossSkillTrained": 0,
+        "Institution": "SCIT",
+        "ProjectId": "1"
+    }
+}

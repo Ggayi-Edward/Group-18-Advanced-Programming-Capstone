@@ -39,6 +39,18 @@ class EquipmentController extends Controller
             'SupportPhase'  => 'nullable|string|max:255',
         ]);
 
+        // ✅ Check for duplicate InventoryCode
+        if (!empty($data['InventoryCode'])) {
+            $existing = collect(FakeEquipmentRepository::all())
+                ->firstWhere('InventoryCode', $data['InventoryCode']);
+
+            if ($existing) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['InventoryCode' => 'An equipment with this inventory code already exists.']);
+            }
+        }
+
         FakeEquipmentRepository::create($data);
         return redirect()->route('equipment.index')->with('status', 'Equipment created');
     }
@@ -80,6 +92,18 @@ class EquipmentController extends Controller
             'UsageDomain'   => 'nullable|string|max:255',
             'SupportPhase'  => 'nullable|string|max:255',
         ]);
+
+        // ✅ Prevent duplicate InventoryCode during update (except current record)
+        if (!empty($data['InventoryCode'])) {
+            $existing = collect(FakeEquipmentRepository::all())
+                ->first(fn($eq) => $eq->InventoryCode === $data['InventoryCode'] && $eq->Id != $id);
+
+            if ($existing) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['InventoryCode' => 'An equipment with this inventory code already exists.']);
+            }
+        }
 
         FakeEquipmentRepository::update($id, $data);
         return redirect()->route('equipment.index')->with('status', 'Equipment updated');

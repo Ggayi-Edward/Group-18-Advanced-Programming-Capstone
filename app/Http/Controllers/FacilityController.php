@@ -7,6 +7,7 @@ use App\Data\FakeFacilityRepository;
 use App\Data\FakeServiceRepository;
 use App\Data\FakeEquipmentRepository;
 use App\Data\FakeProjectRepository;
+use Exception;
 
 class FacilityController extends Controller
 {
@@ -45,13 +46,38 @@ class FacilityController extends Controller
 
     public function store(Request $request)
     {
+        // ✅ Validation (required fields + data retention)
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
+            'facilityType' => 'required|string|max:255',
+            'partnerOrganization' => 'nullable|string|max:255',
+            'capabilities' => 'nullable|string',
+            'description' => 'nullable|string',
+        ]);
+
+        // ✅ Uniqueness check (name + location)
+        $existing = collect(FakeFacilityRepository::all())->first(function ($f) use ($data) {
+            return strcasecmp($f->Name, $data['name']) === 0 &&
+                   strcasecmp($f->Location, $data['location']) === 0;
+        });
+
+        if ($existing) {
+            return back()
+                ->withErrors(['name' => 'A facility with this name already exists at this location.'])
+                ->withInput();
+        }
+
+        // ✅ Store new facility
         FakeFacilityRepository::create([
-            'Name' => $request->input('name'),
-            'Location' => $request->input('location'),
-            'Description' => $request->input('description'),
-            'PartnerOrganization' => $request->input('partnerOrganization'),
-            'FacilityType' => $request->input('facilityType'),
-            'Capabilities' => array_map('trim', explode(',', $request->input('capabilities'))),
+            'Name' => $data['name'],
+            'Location' => $data['location'],
+            'Description' => $data['description'] ?? '',
+            'PartnerOrganization' => $data['partnerOrganization'] ?? '',
+            'FacilityType' => $data['facilityType'],
+            'Capabilities' => !empty($data['capabilities'])
+                ? array_map('trim', explode(',', $data['capabilities']))
+                : [],
         ]);
 
         return redirect()->route('facilities.index')
@@ -64,7 +90,8 @@ class FacilityController extends Controller
         abort_unless($facility, 404, "Facility not found");
 
         $services  = FakeServiceRepository::forFacility($id);
-        $equipment = FakeEquipmentRepository::forFacility($id);
+        // ✅ Safe fix for missing method
+        $equipment = array_filter(FakeEquipmentRepository::all(), fn($e) => $e->FacilityId == $id);
         $projects  = FakeProjectRepository::forFacility($id);
 
         return view('facilities.show', compact('facility', 'services', 'equipment', 'projects'));
@@ -80,13 +107,37 @@ class FacilityController extends Controller
 
     public function update(Request $request, $id)
     {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
+            'facilityType' => 'required|string|max:255',
+            'partnerOrganization' => 'nullable|string|max:255',
+            'capabilities' => 'nullable|string',
+            'description' => 'nullable|string',
+        ]);
+
+        // ✅ Check uniqueness (excluding current)
+        $duplicate = collect(FakeFacilityRepository::all())->first(function ($f) use ($data, $id) {
+            return $f->FacilityId != $id &&
+                   strcasecmp($f->Name, $data['name']) === 0 &&
+                   strcasecmp($f->Location, $data['location']) === 0;
+        });
+
+        if ($duplicate) {
+            return back()
+                ->withErrors(['name' => 'A facility with this name already exists at this location.'])
+                ->withInput();
+        }
+
         FakeFacilityRepository::update($id, [
-            'Name' => $request->input('name'),
-            'Location' => $request->input('location'),
-            'Description' => $request->input('description'),
-            'PartnerOrganization' => $request->input('partnerOrganization'),
-            'FacilityType' => $request->input('facilityType'),
-            'Capabilities' => array_map('trim', explode(',', $request->input('capabilities'))),
+            'Name' => $data['name'],
+            'Location' => $data['location'],
+            'Description' => $data['description'] ?? '',
+            'PartnerOrganization' => $data['partnerOrganization'] ?? '',
+            'FacilityType' => $data['facilityType'],
+            'Capabilities' => !empty($data['capabilities'])
+                ? array_map('trim', explode(',', $data['capabilities']))
+                : [],
         ]);
 
         return redirect()->route('facilities.index')
@@ -97,10 +148,9 @@ class FacilityController extends Controller
     {
         $projects = FakeProjectRepository::forFacility($id);
 
-        // Only projects block deletion
         if (!empty($projects)) {
             return redirect()->route('facilities.index')
-                             ->with('error', 'Cannot delete facility because it has projects linked.');
+                             ->with('error', 'Cannot delete facility because it has dependant.');
         }
 
         FakeFacilityRepository::delete($id);

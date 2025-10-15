@@ -8,162 +8,137 @@ use App\Data\FakeProjectRepository;
 
 class ParticipantController extends Controller
 {
-    /**
-     * Display a listing of participants.
-     */
     public function index()
     {
         $participants = FakeParticipantRepository::all();
         return view('participants.index', compact('participants'));
     }
 
-    /**
-     * Show the form for creating a new participant.
-     */
     public function create()
     {
-        // Load projects for dropdown 
         $projects = FakeProjectRepository::all();
         return view('participants.create', compact('projects'));
     }
 
-    /**
-     * Store a newly created participant in the repository.
-     */
-public function store(Request $request)
-{
-    $validated = $request->validate([
-        'fullName'          => 'required|string|max:255',
-        'email'             => 'required|email|max:255',
-        'affiliation'       => 'required|string|max:255',
-        'specialization'    => 'required|string|max:255',
-        'crossSkillTrained' => 'required|in:0,1',
-        'institution'       => 'required|string|max:255',
-        'projectId'         => 'required|integer',
-    ]);
+    public function store(Request $request)
+    {
+        $validated = $request->validate([
+            'fullName'          => 'required|string|max:255',
+            'email'             => 'required|email|max:255',
+            'affiliation'       => 'required|string|max:255',
+            'specialization'    => 'nullable|string|max:255',
+            'crossSkillTrained' => [
+                'required',
+                'in:0,1',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($value && empty($request->input('specialization'))) {
+                        $fail('Crosskilled/Trained cannot be true without a specialization.');
+                    }
+                },
+            ],
+            'institution'       => 'required|string|max:255',
+            'projectId'         => 'required|integer',
+        ]);
 
-    // ✅ Check if email already exists
-    $existing = \App\Data\FakeParticipantRepository::all();
-    foreach ($existing as $p) {
-        if (strcasecmp($p->Email, $validated['email']) === 0) {
-            return back()
-                ->withInput()
-                ->withErrors(['email' => 'This email is already registered. Please use a different one.']);
+        // Check if email already exists
+        $existing = FakeParticipantRepository::all();
+        foreach ($existing as $p) {
+            if (strcasecmp($p->Email, $validated['email']) === 0) {
+                return back()
+                    ->withInput()
+                    ->withErrors(['email' => 'This email is already registered. Please use a different one.']);
+            }
         }
+
+        $participant = \App\Models\Participant::fromArray([
+            'FullName'          => $validated['fullName'],
+            'Email'             => $validated['email'],
+            'Affiliation'       => $validated['affiliation'],
+            'Specialization'    => $validated['specialization'],
+            'CrossSkillTrained' => (int) $validated['crossSkillTrained'],
+            'Institution'       => $validated['institution'],
+            'ProjectId'         => $validated['projectId'],
+        ]);
+
+        FakeParticipantRepository::create($participant->toArray());
+
+        $project = FakeProjectRepository::find($participant->ProjectId);
+        if ($project) {
+            $project->Participants[] = $participant;
+            FakeProjectRepository::update($project->ProjectId, $project->toArray());
+        }
+
+        return redirect()
+            ->route('participants.index', $participant->ProjectId)
+            ->with('success', 'Participant created successfully.');
     }
 
-    // ✅ Continue saving if email is new
-    $participant = \App\Models\Participant::fromArray([
-        'FullName'          => $validated['fullName'],
-        'Email'             => $validated['email'],
-        'Affiliation'       => $validated['affiliation'],
-        'Specialization'    => $validated['specialization'],
-        'CrossSkillTrained' => (int) $validated['crossSkillTrained'],
-        'Institution'       => $validated['institution'],
-        'ProjectId'         => $validated['projectId'],
-    ]);
-
-    \App\Data\FakeParticipantRepository::create($participant->toArray());
-
-    $project = \App\Data\FakeProjectRepository::find($participant->ProjectId);
-    if ($project) {
-        $project->Participants[] = $participant;
-        \App\Data\FakeProjectRepository::update($project->ProjectId, $project->toArray());
-    }
-
-    return redirect()
-        ->route('projects.index', $participant->ProjectId)
-        ->with('success', 'Participant created successfully.');
-}
-
-
-
-    /**
-     * Display a single participant.
-     */
     public function show($id)
     {
         $participant = FakeParticipantRepository::find($id);
-        
         if (!$participant) {
             abort(404, 'Participant not found.');
         }
-        
-        
+
         $project = FakeProjectRepository::find($participant->ProjectId);
         $participant->ProjectName = $project ? $project->Name : 'N/A';
-
 
         return view('participants.show', compact('participant'));
     }
 
-    /**
-     * Show the form for editing an existing participant.
-     */
-public function edit(Request $request, $id)
-{
-    $participant = FakeParticipantRepository::find($id);
-    
-    if (!$participant) {
-        abort(404, 'Participant not found.');
+    public function edit(Request $request, $id)
+    {
+        $participant = FakeParticipantRepository::find($id);
+        if (!$participant) abort(404, 'Participant not found.');
+
+        $projects = FakeProjectRepository::all();
+        $redirectUrl = $request->query('redirectTo', route('participants.index'));
+
+        return view('participants.edit', compact('participant', 'projects', 'redirectUrl'));
     }
 
-    // Load projects for dropdown
-    $projects = FakeProjectRepository::all();
+    public function update(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'fullName'          => 'required|string|max:255',
+            'email'             => 'required|email|max:255',
+            'affiliation'       => 'required|string|max:255',
+            'specialization'    => 'nullable|string|max:255',
+            'crossSkillTrained' => [
+                'required',
+                'in:0,1',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($value && empty($request->input('specialization'))) {
+                        $fail('Crosskilled/Trained cannot be true without a specialization.');
+                    }
+                },
+            ],
+            'institution'       => 'nullable|string|max:255',
+            'projectId'         => 'required|integer',
+        ]);
 
-    // Determine where to redirect after update
-    $redirectUrl = $request->query('redirectTo', route('participants.index'));
+        FakeParticipantRepository::update($id, [
+            'FullName'          => $validated['fullName'],
+            'Email'             => $validated['email'],
+            'Affiliation'       => $validated['affiliation'],
+            'Specialization'    => $validated['specialization'],
+            'CrossSkillTrained' => (int) $validated['crossSkillTrained'],
+            'Institution'       => $validated['institution'],
+            'ProjectId'         => $validated['projectId'],
+        ]);
 
-    return view('participants.edit', compact('participant', 'projects', 'redirectUrl'));
-}
+        $redirect = $request->input('redirectTo', route('participants.index'));
 
+        return redirect($redirect)
+               ->with('success', 'Participant updated successfully.');
+    }
 
-    /**
-     * Update an existing participant in the repository.
-     */
-public function update(Request $request, $id)
-{
-    $validated = $request->validate([
-        'fullName'          => 'required|string|max:255',
-        'email'             => 'required|email|max:255',
-        'affiliation'       => 'required|string|max:255',
-        'specialization'    => 'required|string|max:255',
-        'crossSkillTrained' => 'required|in:0,1',
-        'institution'       => 'required|string|max:255',
-        'projectId'         => 'required|integer',
-    ]);
-
-    // Update the participant in the repository
-    FakeParticipantRepository::update($id, [
-        'FullName'          => $validated['fullName'],
-        'Email'             => $validated['email'],
-        'Affiliation'       => $validated['affiliation'],
-        'Specialization'    => $validated['specialization'],
-        'CrossSkillTrained' => (int) $validated['crossSkillTrained'],
-        'Institution'       => $validated['institution'],
-        'ProjectId'         => $validated['projectId'],
-    ]);
-
-    // Redirect back to project details page if provided, else fallback to participants.index
-    $redirect = $request->input('redirectTo', route('participants.index'));
-
-    return redirect($redirect)
-           ->with('success', 'Participant updated successfully.');
-}
-
-
-    /**
-     * Remove a participant from the repository.
-     */
     public function destroy(Request $request, $id)
-{
-    \App\Data\FakeParticipantRepository::delete($id);
+    {
+        FakeParticipantRepository::delete($id);
+        $redirect = $request->input('redirectTo') ?? route('participants.index');
 
-    // Redirect back to redirectTo if provided, else fallback to participants.index
-    $redirect = $request->input('redirectTo') ?? route('participants.index');
-
-    return redirect($redirect)
-           ->with('success', 'Participant deleted successfully.');
-}
-
+        return redirect($redirect)
+               ->with('success', 'Participant deleted successfully.');
+    }
 }

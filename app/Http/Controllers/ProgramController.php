@@ -26,15 +26,28 @@ class ProgramController extends Controller
     {
         $data = $request->validate([
             'Name' => 'required|string|max:255',
-            'Description' => 'nullable|string',
+            'Description' => 'required|string|max:1000', // now required
             'NationalAlignment' => 'nullable|string',
             'FocusAreas' => 'nullable|string',
             'Phases' => 'nullable|string',
+        ], [
+            'Name.required' => 'Program name is required.',
+            'Description.required' => 'Program description is required.',
         ]);
 
-        FakeProgramRepository::create($data);
-        return redirect()->route('programs.index')->with('status', 'Program created.');
+        // Check for uniqueness of Name
+        try {
+            FakeProgramRepository::create($data);
+        } catch (\Exception $e) {
+            return back()->withErrors(['Name' => 'Program name already exists.'])->withInput();
+        }
+
+        return redirect()->route('programs.index')
+                        ->with('status', 'Program created successfully.');
     }
+
+
+
 
     public function show($id)
     {
@@ -53,7 +66,7 @@ class ProgramController extends Controller
         return view('programs.edit', compact('program'));
     }
 
-    public function update(Request $request, $id)
+   public function update(Request $request, $id)
     {
         $data = $request->validate([
             'Name' => 'required|string|max:255',
@@ -63,9 +76,18 @@ class ProgramController extends Controller
             'Phases' => 'nullable|string',
         ]);
 
-        FakeProgramRepository::update($id, $data);
-        return redirect()->route('programs.index')->with('status', 'Program updated.');
+        try {
+            FakeProgramRepository::update($id, $data);
+        } catch (\Exception $e) {
+            return back()
+                ->withErrors(['Name' => "Program name already exists"])
+                ->withInput();
+        }
+
+        return redirect()->route('programs.index')
+                        ->with('status', 'Program updated successfully.');
     }
+
 
     public function destroy($id)
     {
@@ -74,7 +96,7 @@ class ProgramController extends Controller
 
         if (count($projects) > 0) {
             return redirect()->route('programs.index')
-                             ->with('error', 'Cannot delete Program because it has Projects under it.');
+                             ->with('error', 'Program has Projects; archive or reassign before delete.');
         }
 
         // Safe to delete

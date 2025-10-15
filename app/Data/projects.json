@@ -1,28 +1,32 @@
 {
     "1": {
-        "Name": "nn",
-        "Description": "vv",
+        "Name": "pn",
+        "Description": "gggggggg",
         "StartDate": null,
         "EndDate": null,
         "Status": "Planned",
         "ProgramId": "1",
         "FacilityId": "1",
         "Participants": [
-            "ghgh"
+            "hhgg"
         ],
-        "Outcomes": [
-            {
-                "OutcomeId": null,
-                "ProjectId": "1",
-                "Type": "Prototype",
-                "CertificationStatus": "bb",
-                "Commercialization": "",
-                "FilePath": "storage\/artifacts\/1760510068_antibiotics-12-00452.pdf",
-                "Description": ""
-            }
-        ],
+        "Outcomes": [],
         "ProjectId": 1,
         "Requirements": [],
         "EquipmentUsed": []
+    },
+    "2": {
+        "Name": "pn",
+        "Description": "bgbgv",
+        "StartDate": null,
+        "EndDate": null,
+        "Status": "Ongoing",
+        "ProgramId": "2",
+        "FacilityId": "1",
+        "Participants": [
+            "bbgvgfbg"
+        ],
+        "Outcomes": [],
+        "ProjectId": 2
     }
 }

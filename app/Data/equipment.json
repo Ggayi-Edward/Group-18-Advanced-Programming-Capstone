@@ -8,5 +8,17 @@
             "Prototyping"
         ],
         "EquipmentId": 1
+    },
+    "2": {
+        "Name": "5t5",
+        "Description": "55554",
+        "Capabilities": "554",
+        "FacilityId": "1",
+        "InventoryCode": "5555",
+        "UsageDomain": "vffv",
+        "SupportPhase": [
+            "ff"
+        ],
+        "EquipmentId": 2
     }
 }

@@ -98,43 +98,98 @@
             </div>
 
             <!-- Participants -->
-            <div class="form-group mb-3">
-                <label for="participants">Participants / Team Members <span class="text-danger">*</span></label>
-                <input type="text" id="participants" name="participants"
-                       value="{{ old('participants', is_array($project->Participants) ? implode(', ', $project->Participants) : $project->Participants) }}"
-                       class="form-control @error('participants') is-invalid @enderror"
-                       placeholder="Enter participants (comma-separated)" required>
-                <small class="text-muted">Example: Jane Doe, John Smith</small>
-                @error('participants')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
+<div class="form-group mb-3">
+    <label for="participants">Participants / Team Members <span class="text-danger">*</span></label>
+    @php
+        $participantsValue = '';
+
+        if (old('participants')) {
+            // If there's an old value (from form revalidation), use it directly
+            $participantsValue = old('participants');
+        } elseif (!empty($project->Participants)) {
+            // Normalize participants into plain text
+            if (is_array($project->Participants)) {
+                $names = [];
+                foreach ($project->Participants as $p) {
+                    if (is_string($p)) {
+                        $names[] = $p;
+                    } elseif (is_object($p) && isset($p->Name)) {
+                        $names[] = $p->Name;
+                    } elseif (is_array($p) && isset($p['Name'])) {
+                        $names[] = $p['Name'];
+                    }
+                }
+                $participantsValue = implode(', ', $names);
+            } else {
+                $participantsValue = (string) $project->Participants;
+            }
+        }
+    @endphp
+
+    <input type="text" id="participants" name="participants"
+           value="{{ $participantsValue }}"
+           class="form-control @error('participants') is-invalid @enderror"
+           placeholder="Enter participants (comma-separated)" required>
+    <small class="text-muted">Example: Jane Doe, John Smith</small>
+    @error('participants')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
 
             <!-- Outcomes -->
-            <div class="form-group mb-3">
-                <label for="outcomes">Outcomes (comma-separated)</label>
-                <input type="text" id="outcomes" name="outcomes"
-                       value="{{ old('outcomes', is_array($project->Outcomes) ? implode(', ', $project->Outcomes) : $project->Outcomes) }}"
-                       class="form-control @error('outcomes') is-invalid @enderror"
-                       placeholder="Enter outcomes">
-                @error('outcomes')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
+@php
+    $outcomesValue = '';
+    if (old('outcomes')) {
+        $outcomesValue = old('outcomes');
+    } elseif (!empty($project->Outcomes)) {
+        if (is_array($project->Outcomes)) {
+            $names = [];
+            foreach ($project->Outcomes as $o) {
+                if (is_object($o) && isset($o->Name)) $names[] = $o->Name;
+                elseif (is_array($o) && isset($o['Name'])) $names[] = $o['Name'];
+                elseif (is_string($o)) $names[] = $o;
+            }
+            $outcomesValue = implode(', ', $names);
+        } else {
+            $outcomesValue = (string) $project->Outcomes;
+        }
+    }
+@endphp
+<div class="form-group mb-3">
+    <label for="outcomes">Outcomes (comma-separated)</label>
+    <input type="text" id="outcomes" name="outcomes"
+           value="{{ $outcomesValue }}"
+           class="form-control @error('outcomes') is-invalid @enderror"
+           placeholder="Enter outcomes">
+    @error('outcomes')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
 
             <!-- Technical Requirements -->
-            <div class="form-group mb-3">
-                <label for="requirements">Technical Requirements (comma-separated)</label>
-                <input type="text" id="requirements" name="requirements"
-                       value="{{ old('requirements', is_array($project->Requirements) ? implode(', ', $project->Requirements) : $project->Requirements) }}"
-                       class="form-control @error('requirements') is-invalid @enderror"
-                       placeholder="Enter requirements">
-                @error('requirements')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
+@php
+    $requirementsValue = '';
+    if (old('requirements')) {
+        $requirementsValue = old('requirements');
+    } elseif (!empty($project->Requirements)) {
+        if (is_array($project->Requirements)) {
+            $requirementsValue = implode(', ', $project->Requirements);
+        } else {
+            $requirementsValue = (string) $project->Requirements;
+        }
+    }
+@endphp
+<div class="form-group mb-3">
+    <label for="requirements">Technical Requirements (comma-separated)</label>
+    <input type="text" id="requirements" name="requirements"
+           value="{{ $requirementsValue }}"
+           class="form-control @error('requirements') is-invalid @enderror"
+           placeholder="Enter requirements">
+    @error('requirements')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
 
-        </div>
 
         <!-- Footer -->
         <div class="card-footer d-flex justify-content-between">

@@ -2,12 +2,28 @@
     "1": {
         "Name": "vbvb",
         "Location": "nn",
-        "Description": null,
-        "PartnerOrganization": null,
-        "FacilityType": "hghg",
-        "Capabilities": [
-            ""
-        ],
+        "Description": "",
+        "PartnerOrganization": "",
+        "FacilityType": "btcdx",
+        "Capabilities": [],
         "FacilityId": 1
+    },
+    "2": {
+        "Name": "UUUU",
+        "Location": "HBT",
+        "FacilityType": "BY",
+        "Description": "",
+        "PartnerOrganization": "",
+        "Capabilities": [],
+        "FacilityId": 2
+    },
+    "3": {
+        "Name": "UUUB",
+        "Location": "HBT",
+        "FacilityType": "NFDB",
+        "Description": "",
+        "PartnerOrganization": "",
+        "Capabilities": [],
+        "FacilityId": 3
     }
 }
